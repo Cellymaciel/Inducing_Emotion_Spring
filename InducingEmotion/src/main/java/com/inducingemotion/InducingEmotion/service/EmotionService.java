@@ -1,6 +1,6 @@
 package com.inducingemotion.InducingEmotion.service;
 
-import com.inducingemotion.InducingEmotion.model.Emotion;
+import com.inducingemotion.InducingEmotion.entitys.Emotion;
 import com.inducingemotion.InducingEmotion.repository.EmotionRepository;
 import org.springframework.stereotype.Service;
 
@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 public class EmotionService {
     private final EmotionRepository emotionRepository;
     public  EmotionService (EmotionRepository emotionRepository){
+
         this.emotionRepository = emotionRepository;
     }
 

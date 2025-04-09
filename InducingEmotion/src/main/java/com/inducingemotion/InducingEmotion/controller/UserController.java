@@ -1,33 +1,51 @@
 package com.inducingemotion.InducingEmotion.controller;
 
-import com.inducingemotion.InducingEmotion.model.User;
+import com.inducingemotion.InducingEmotion.dto.LoginDTO;
+import com.inducingemotion.InducingEmotion.dto.UserDTO;
+import com.inducingemotion.InducingEmotion.entitys.User;
+import com.inducingemotion.InducingEmotion.repository.UserRepository;
 import com.inducingemotion.InducingEmotion.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 public class UserController {
-    private  final UserService userService;
 
-    public  UserController(UserService userService){
-        this.userService = userService;
-    }
-@PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody Map<String, String> request){
-        String name = request.get("name");
-        String email = request.get("email");
-        String phone = request.get("phone");
-        String password = request.get("password");
-        if (name == null || email == null || password == null || phone == null){
-            return ResponseEntity.badRequest().body("Todos campos são obrigatorios!");
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private UserRepository userRepository;
+
+    @CrossOrigin
+@PostMapping("/createUser")
+    public ResponseEntity<?> registerUser(@RequestBody UserDTO userDTO){
+
+        if (userRepository.existsByEmail(userDTO.email())) {
+            return ResponseEntity
+                    .status(HttpStatus.CONFLICT)
+                    .body("Erro: Email já cadastrado.");
         }
-    User newUser = userService.registerUser(name, email,password,phone);
-    return ResponseEntity.ok(Map.of("Mensagem", "Usuario registrado com sucesso!", "UserId", newUser.getId()));
+
+          User user = userService.registerUser(
+                  userDTO.name(),
+                  userDTO.email(),
+                  userDTO.password(),
+                  userDTO.phone()
+          );
+          return ResponseEntity.ok("Criado User com Sucesso");
+
+    }
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
+        User user = userRepository.findByEmail(loginDTO.email());
+        if (user == null || !user.getPassword().equals(loginDTO.password())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário ou senha incorretos");
+        }
+        return ResponseEntity.ok("Login realizado com sucesso");
     }
 }

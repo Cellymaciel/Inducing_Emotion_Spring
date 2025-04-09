@@ -1,6 +1,6 @@
 package com.inducingemotion.InducingEmotion.service;
 
-import com.inducingemotion.InducingEmotion.model.User;
+import com.inducingemotion.InducingEmotion.entitys.User;
 import com.inducingemotion.InducingEmotion.repository.UserRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,11 +15,14 @@ public class UserService {
     };
 
     public User registerUser(String name, String email, String password, String phone){
-        String hashedPassword = passwordEncoder.encode(password);
+
+        if ( userRepository.existsByEmail(email)){
+            throw  new RuntimeException("Usuario ha existente : " + email);
+        }
         User user = new User();
         user.setName(name);
         user.setEmail(email);
-        user.setPassword(hashedPassword);
+        user.setPassword(password);
         user.setPhone(phone);
         return userRepository.save(user);
     }

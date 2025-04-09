@@ -1,4 +1,4 @@
-package com.inducingemotion.InducingEmotion.model;
+package com.inducingemotion.InducingEmotion.entitys;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class Emotion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private  Long id;
+    private  Long id_emotion;
     @Column(nullable = false)
     private  String name;
 
