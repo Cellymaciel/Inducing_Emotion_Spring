@@ -1,39 +1,54 @@
 package com.inducingemotion.InducingEmotion.controller;
 
+import com.inducingemotion.InducingEmotion.dto.InducingDTO;
+import com.inducingemotion.InducingEmotion.dto.InducingResponceDTO;
 import com.inducingemotion.InducingEmotion.entitys.Inducing;
 import com.inducingemotion.InducingEmotion.service.InducingService;
+import com.inducingemotion.InducingEmotion.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.sql.Time;
-import java.util.Map;
+import java.util.List;
 
 @RestController
-@RequestMapping("api/inducing")
+@RequestMapping("/inducing")
 public class InducingController {
 
-    private final InducingService inducingService;
+    @Autowired
+    private InducingService inducingService;
+    @Autowired
+    private UserService userService;
 
-    public InducingController(InducingService inducingService) {
-        this.inducingService = inducingService;
+
+    @PostMapping("/createInducing/{emailUser}")
+    public ResponseEntity<Void> salvarInducao(
+            @PathVariable String emailUser,
+            @RequestBody InducingDTO inducingDTO,
+            UriComponentsBuilder uriBuilder
+
+    ){
+
+        Inducing saveInducing = inducingService.saveInducing(inducingDTO, emailUser);
+        java.net.URI uri = uriBuilder.path("/inducing/{id}")
+                .buildAndExpand(saveInducing.getId())
+                .toUri();
+        return ResponseEntity.created(uri).build();
     }
 
-    @PostMapping("/newInducing")
-    public ResponseEntity<Inducing> saveInducing(
-            @RequestParam Long id_user,
-            @RequestParam Time time,
-            @RequestParam Long emotion_expected,
-            @RequestParam Long emotion_detected,
-            @RequestParam Float porcent_Sad,
-            @RequestParam Float porcent_Happy,
-            @RequestParam Float porcent_Neutral,
-            @RequestParam Float porcent_Anger,
-            @RequestParam Float porcent_Surprise) {
 
-        Inducing savedInducing = inducingService.saveInducing(
-                id_user, time, emotion_expected, emotion_detected,
-                porcent_Sad, porcent_Happy, porcent_Neutral, porcent_Anger, porcent_Surprise
-        );
-        return ResponseEntity.ok(savedInducing);
+    @GetMapping("/")
+    public ResponseEntity<List<InducingResponceDTO>> getAllInducingsWithDetails() {
+        List<InducingResponceDTO> allInducings = inducingService.getAllInducingDetails();
+        return new ResponseEntity<>(allInducings, HttpStatus.OK);
     }
+
+    @GetMapping("/{inducingId}")
+    public ResponseEntity<InducingResponceDTO> getInducingDetails(@PathVariable Long inducingId) {
+        InducingResponceDTO inducingDetails = inducingService.getInducingDetails(inducingId);
+        return new ResponseEntity<>(inducingDetails, HttpStatus.OK);
+    }
+
 }

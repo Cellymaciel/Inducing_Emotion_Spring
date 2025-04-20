@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -46,6 +47,18 @@ public class UserController {
         if (user == null || !user.getPassword().equals(loginDTO.password())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuário ou senha incorretos");
         }
-        return ResponseEntity.ok("Login realizado com sucesso");
+        UserDTO responseUser = new UserDTO(user.getName(), user.getEmail(), null, user.getPhone());
+        return ResponseEntity.ok(responseUser);
+    }
+
+    @GetMapping("/profile/{email}")
+    public ResponseEntity<?> getUserProfile(@PathVariable String email){
+        Optional<User> userOptional = userRepository.findById(email);
+        if(userOptional.isPresent()){
+            User user = userOptional.get();
+            return   ResponseEntity.ok(new UserDTO(user.getName(), user.getEmail(), user.getPassword(), user.getPhone()));
+        }else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuario não encontrado");
+        }
     }
 }

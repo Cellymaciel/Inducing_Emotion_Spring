@@ -3,46 +3,28 @@ package com.inducingemotion.InducingEmotion.entitys;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.sql.Date;
-import java.sql.Time;
+import java.time.LocalDateTime;
 
+@Table(name = "inducing")
 @Entity
 @Data
-@Table(name = "inducing")
 public class Inducing {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_inducing;
+    private Long Id;
 
-    @JoinColumn(name = "id_user")
-    private Long id_user;
+    @ManyToOne
+    @JoinColumn(name = "Email_User", referencedColumnName = "email")
+    private  User user;
 
-    @Column(nullable = false)
-    private Date data;
+    @Column(name = "Inicio da indução ", nullable = false)
+    private LocalDateTime dataInicio = LocalDateTime.now();
 
-    @Column(nullable = false)
-    private Time time;
+    @Column(name = "Fim da indução", nullable = false)
+    private LocalDateTime dataFim;
 
-    @JoinColumn(name = "id_emotion")
-    private Long emotion_expected;
-
-    @JoinColumn(name = "id_emotion")
-    private Long emotion_detected;
-
-    @Column(nullable = false)
-    private Float porcent_Happy;
-
-    @Column(nullable = false)
-    private Float porcent_Sad;
-
-    @Column(nullable = false)
-    private Float porcent_Neutral;
-
-    @Column(nullable = false)
-    private Float porcent_Anger;
-
-    @Column(nullable = false)
-    private Float porcent_Surprice;
-
+    @Column(name = "Emoção_Induzida")
+    private String emocaoEscolha;
 
 }
