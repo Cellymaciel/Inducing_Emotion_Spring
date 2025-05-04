@@ -12,6 +12,8 @@ import com.inducingemotion.InducingEmotion.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,15 +34,19 @@ public class InducingService {
 
 
 
-    public Inducing saveInducing(InducingDTO inducingDTO, String userEmail){
+    public Inducing saveInducing(InducingDTO inducingDTO, String userEmail) {
         User user = userRepository.findById(userEmail).orElseThrow(() ->
                 new RuntimeException("Usuário não encontrado"));
+        ZoneId zoneBR = ZoneId.of("America/Sao_Paulo");
+
+        LocalDateTime inicioConvertido = inducingDTO.dataInicio().atZone(ZoneId.of("UTC"))
+                .withZoneSameInstant(zoneBR)
+                .toLocalDateTime();
 
         Inducing inducing = new Inducing();
         inducing.setUser(user);
         inducing.setEmocaoEscolha(inducingDTO.emocaoEscolha());
-        inducing.setDataInicio(inducingDTO.dataInicio());
-        inducing.setDataFim(inducingDTO.dataFim());
+        inducing.setDataInicio(inicioConvertido);
         Inducing savedInducing = inducingRepository.save(inducing);
 
         emotionDetectedService.saveEmotions(savedInducing, user, inducingDTO.listEmotions());
@@ -54,11 +60,8 @@ public class InducingService {
         User user = inducing.getUser();
         List<EmotionDetected> emotionsDetected = emotionDetectedRepository.findByInducing(inducing);
 
-
         Map<Long, List<EmotionDetected>> emotionsByVideo = emotionsDetected.stream()
                 .collect(Collectors.groupingBy(EmotionDetected::getIdVideo));
-
-
 
         List<VideoEmotionDetailDTO> detailsInducing = new ArrayList<>();
         Map<Long, String> dominantEmotionByVideo = new HashMap<>();
@@ -89,21 +92,44 @@ public class InducingService {
                 .map(Map.Entry::getKey)
                 .orElse(null);
 
+        List<String> allDetectedEmotions = emotionsDetected.stream()
+                .map(emotionDetected -> emotionDetected.getEmocao().name())
+                .collect(Collectors.toList());
+
         return new InducingResponceDTO(
                 user,
                 inducing.getDataInicio(),
-                inducing.getDataFim(),
                 inducing.getEmocaoEscolha(),
                 dominantEmotionInducing,
                 inducing.getId(),
-                detailsInducing
+                detailsInducing,
+                allDetectedEmotions
         );
     }
+
     public List<InducingResponceDTO> getAllInducingDetails() {
         List<Inducing> allInducings = inducingRepository.findAll();
         return allInducings.stream()
                 .map(inducing -> getInducingDetails(inducing.getId()))
                 .collect(Collectors.toList());
+    }
+
+
+    public List<InducingResponceDTO> getInducingsByUserEmail(String emailUser) {
+        List<Inducing> userInducings = inducingRepository.findByUser_Email(emailUser);
+        return userInducings.stream()
+                .map(inducing -> getInducingDetails(inducing.getId()))
+                .collect(Collectors.toList());
+    }
+
+    public InducingResponceDTO getLastInducingByUserEmail(String emailUser) {
+        User user = userRepository.findById(emailUser)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        List<Inducing> userInducings = inducingRepository.findTopByUserOrderByDataInicioDesc(user);
+        if (!userInducings.isEmpty()) {
+            return getInducingDetails(userInducings.get(0).getId());
+        }
+        return null;
     }
 
 }

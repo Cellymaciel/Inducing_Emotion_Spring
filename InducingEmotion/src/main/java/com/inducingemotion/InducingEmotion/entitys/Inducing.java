@@ -21,8 +21,7 @@ public class Inducing {
     @Column(name = "Inicio da indução ", nullable = false)
     private LocalDateTime dataInicio = LocalDateTime.now();
 
-    @Column(name = "Fim da indução", nullable = false)
-    private LocalDateTime dataFim;
+
 
     @Column(name = "Emoção_Induzida")
     private String emocaoEscolha;
